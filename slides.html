@@ -6,16 +6,16 @@
   <title>HelpGuru - National Emergency Command Center</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-midnight: #07111F;
       --bg-card: rgba(15, 28, 46, 0.85);
       --bg-card-border: rgba(92, 200, 255, 0.2);
       --primary: #5CC8FF;
-      --primary-glow: rgba(92, 200, 255, 0.25);
+      --primary-glow: rgba(92, 200, 255, 0.3);
       --emergency: #FF4D4F;
-      --emergency-glow: rgba(255, 77, 79, 0.3);
+      --emergency-glow: rgba(255, 77, 79, 0.35);
       --success: #22C55E;
       --highlight: #FFD166;
       --text-white: #F8FAFC;
@@ -44,9 +44,9 @@
       height: 100vh;
       width: 100vw;
       background-image: 
-        radial-gradient(circle at 15% 20%, rgba(92, 200, 255, 0.05) 0%, transparent 45%),
-        radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 45%),
-        radial-gradient(circle at 50% 50%, rgba(7, 17, 31, 0.9) 0%, #07111F 100%);
+        radial-gradient(circle at 15% 20%, rgba(92, 200, 255, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(7, 17, 31, 0.95) 0%, #07111F 100%);
     }
 
     /* Ambient animated mesh background */
@@ -56,8 +56,8 @@
       left: -50%;
       width: 200%;
       height: 200%;
-      background: radial-gradient(circle at center, rgba(92, 200, 255, 0.03) 0%, transparent 60%);
-      animation: rotateBg 40s linear infinite;
+      background: radial-gradient(circle at center, rgba(92, 200, 255, 0.035) 0%, transparent 60%);
+      animation: rotateBg 45s linear infinite;
       pointer-events: none;
       z-index: 0;
     }
@@ -65,6 +65,15 @@
     @keyframes rotateBg {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+
+    /* HelpGuru Official Shield Logo Icon */
+    .logo-emblem {
+      width: 36px;
+      height: 36px;
+      display: inline-block;
+      vertical-align: middle;
+      filter: drop-shadow(0 0 10px rgba(92, 200, 255, 0.4));
     }
 
     /* Top Navigation Header */
@@ -78,26 +87,26 @@
       justify-content: space-between;
       align-items: center;
       z-index: 10;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      background: rgba(7, 17, 31, 0.7);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(7, 17, 31, 0.75);
       backdrop-filter: blur(12px);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 0.8rem;
     }
 
     .brand-logo {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.4rem;
-      font-weight: 700;
+      font-size: 1.45rem;
+      font-weight: 800;
       color: var(--text-white);
       letter-spacing: -0.5px;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.6rem;
     }
 
     .brand-logo span {
@@ -110,7 +119,7 @@
       gap: 0.5rem;
       background: rgba(34, 197, 94, 0.1);
       border: 1px solid rgba(34, 197, 94, 0.3);
-      padding: 0.3rem 0.8rem;
+      padding: 0.35rem 0.85rem;
       border-radius: 999px;
       font-size: 0.75rem;
       font-weight: 700;
@@ -150,6 +159,7 @@
       z-index: 1;
     }
 
+    /* SMOOTH SLIDE TRANSITION ANIMATION */
     .slide {
       position: absolute;
       top: 0;
@@ -159,8 +169,12 @@
       padding: 6.5rem 4rem 4.5rem 4rem;
       opacity: 0;
       visibility: hidden;
-      transform: translateY(20px) scale(0.98);
-      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: scale(0.94) translateY(30px);
+      filter: blur(8px);
+      transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                  transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                  filter 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                  visibility 0.6s;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -169,7 +183,18 @@
     .slide.active {
       opacity: 1;
       visibility: visible;
-      transform: translateY(0) scale(1);
+      transform: scale(1) translateY(0);
+      filter: blur(0px);
+    }
+
+    /* Staggered Content Micro-Animations */
+    .slide.active .animate-up {
+      animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     /* Typography */
@@ -191,7 +216,7 @@
       margin-bottom: 2rem;
     }
 
-    /* Glass Cards */
+    /* Glass Cards with Micro Hover Accent */
     .glass-panel {
       background: var(--bg-card);
       backdrop-filter: blur(16px);
@@ -200,11 +225,25 @@
       padding: 1.8rem;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
       transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0.3;
     }
 
     .glass-panel:hover {
-      border-color: rgba(92, 200, 255, 0.35);
-      box-shadow: 0 25px 50px rgba(92, 200, 255, 0.08);
+      border-color: rgba(92, 200, 255, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 25px 50px rgba(92, 200, 255, 0.12);
     }
 
     /* Layout Grids */
@@ -239,7 +278,7 @@
       font-family: 'Space Grotesk', sans-serif;
       font-size: 3.6rem;
       line-height: 1.05;
-      font-weight: 700;
+      font-weight: 800;
       margin-bottom: 1.2rem;
       background: linear-gradient(135deg, #FFFFFF 40%, var(--primary));
       -webkit-background-clip: text;
@@ -256,7 +295,7 @@
       padding-left: 1rem;
     }
 
-    /* Map Graphic SVG - Real Bangladesh Detailed Vector */
+    /* Map Graphic SVG */
     .map-container {
       position: relative;
       width: 100%;
@@ -288,7 +327,7 @@
       font-family: 'Space Grotesk', monospace;
       font-size: 0.72rem;
       color: var(--text-muted);
-      background: rgba(7, 17, 31, 0.8);
+      background: rgba(7, 17, 31, 0.85);
       padding: 0.4rem 0.8rem;
       border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -310,6 +349,7 @@
     .comp-box {
       border-radius: 16px;
       padding: 1.8rem;
+      position: relative;
     }
 
     .comp-box.old {
@@ -342,13 +382,18 @@
     .comp-item {
       display: flex;
       justify-content: space-between;
-      padding: 0.6rem 1rem;
+      align-items: center;
+      padding: 0.7rem 1rem;
       background: rgba(7, 17, 31, 0.6);
       border-radius: 8px;
       font-size: 0.95rem;
+      border-left: 3px solid transparent;
     }
 
-    /* SLIDE 3 & 4: Architecture Flow */
+    .comp-box.old .comp-item { border-left-color: var(--emergency); }
+    .comp-box.new .comp-item { border-left-color: var(--success); }
+
+    /* SLIDE 3: Rich Workflow Step Pipeline */
     .arch-flow-minimal {
       display: flex;
       justify-content: space-between;
@@ -361,20 +406,42 @@
       flex: 1;
       background: var(--bg-card);
       border: 1px solid var(--bg-card-border);
-      border-radius: 14px;
-      padding: 1.5rem 1rem;
+      border-radius: 16px;
+      padding: 1.6rem 1rem;
       text-align: center;
       position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .flow-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(92, 200, 255, 0.15);
+    }
+
+    .step-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #07111F;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      font-family: 'Space Grotesk', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
     }
 
     .flow-card .icon {
-      font-size: 2rem;
+      font-size: 2.2rem;
       margin-bottom: 0.5rem;
     }
 
     .flow-card .title {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       color: var(--text-white);
     }
@@ -383,6 +450,12 @@
       color: var(--primary);
       font-size: 1.5rem;
       font-weight: bold;
+      animation: arrowGlow 2s infinite ease-in-out;
+    }
+
+    @keyframes arrowGlow {
+      0%, 100% { opacity: 0.4; transform: translateX(0); }
+      50% { opacity: 1; transform: translateX(4px); }
     }
 
     /* Architecture Callout Banner */
@@ -395,6 +468,25 @@
       color: var(--text-white);
       line-height: 1.6;
     }
+
+    /* SLIDE 4: Color-Coded Microservices Cards */
+    .svc-card {
+      background: var(--bg-card);
+      border-radius: 16px;
+      padding: 1.4rem;
+      border: 1px solid var(--bg-card-border);
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .svc-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .svc-card.svc-gateway { border-top: 4px solid var(--accent-auth); }
+    .svc-card.svc-intake { border-top: 4px solid var(--primary); }
+    .svc-card.svc-tracker { border-top: 4px solid var(--accent-notify); }
+    .svc-card.svc-engine { border-top: 4px solid var(--accent-decision); }
 
     /* SLIDE 5: HERO SLIDE - Radial Decision Engine */
     .radial-container {
@@ -443,6 +535,12 @@
       gap: 0.4rem;
       white-space: nowrap;
       z-index: 3;
+      transition: all 0.3s ease;
+    }
+
+    .radial-node:hover {
+      border-color: var(--accent-decision);
+      box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
     }
 
     /* Radial Positions */
@@ -491,6 +589,11 @@
       border: 1px solid var(--bg-card-border);
       border-radius: 12px;
       padding: 0.9rem 1.4rem;
+      transition: transform 0.2s ease;
+    }
+
+    .log-item:hover {
+      transform: translateX(5px);
     }
 
     .log-time {
@@ -530,6 +633,12 @@
       border: 1px solid var(--bg-card-border);
       border-radius: 14px;
       padding: 1.1rem 1.8rem;
+      transition: all 0.2s ease;
+    }
+
+    .status-row:hover {
+      border-color: var(--success);
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.1);
     }
 
     .status-label {
@@ -558,7 +667,7 @@
       align-items: center;
       z-index: 10;
       border-top: 1px solid rgba(255, 255, 255, 0.05);
-      background: rgba(7, 17, 31, 0.7);
+      background: rgba(7, 17, 31, 0.75);
       backdrop-filter: blur(12px);
     }
 
@@ -574,7 +683,7 @@
       height: 100%;
       width: 11.11%;
       background: var(--primary);
-      transition: width 0.3s ease;
+      transition: width 0.4s ease;
     }
 
     .btn-nav {
@@ -603,7 +712,20 @@
   <!-- Top Navigation Bar -->
   <div class="top-bar">
     <div class="brand">
-      <div class="brand-logo">⚡ Help<span>Guru</span></div>
+      <!-- Official SVG Logo Emblem -->
+      <svg class="logo-emblem" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="logo-grad-head" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#5CC8FF" />
+            <stop offset="50%" stop-color="#818CF8" />
+            <stop offset="100%" stop-color="#FF4D4F" />
+          </linearGradient>
+        </defs>
+        <polygon points="20,2 36,10 36,26 20,38 4,26 4,10" stroke="url(#logo-grad-head)" stroke-width="2.5" fill="rgba(92, 200, 255, 0.12)"/>
+        <path d="M 22 8 L 13 22 L 20 22 L 17 32 L 27 18 L 20 18 Z" fill="url(#logo-grad-head)"/>
+      </svg>
+
+      <div class="brand-logo">Help<span>Guru</span></div>
       <div class="status-pill">
         <div class="pulse-dot"></div>
         Operation Control Center
@@ -614,16 +736,25 @@
 
   <div class="deck-container">
 
-    <!-- SLIDE 1: HOOK & TITLE WITH DETAILED BANGLADESH VECTOR MAP -->
+    <!-- SLIDE 1: HERO & LOGO EMBLEM + BANGLADESH VECTOR MAP -->
     <div class="slide active" id="slide-1">
-      <div class="hero-container">
+      <div class="hero-container animate-up">
         <div>
+          <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem;">
+            <svg style="width: 50px; height: 50px; filter: drop-shadow(0 0 15px rgba(92, 200, 255, 0.5));" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="20,2 36,10 36,26 20,38 4,26 4,10" stroke="url(#logo-grad-head)" stroke-width="2.5" fill="rgba(92, 200, 255, 0.15)"/>
+              <path d="M 22 8 L 13 22 L 20 22 L 17 32 L 27 18 L 20 18 Z" fill="url(#logo-grad-head)"/>
+            </svg>
+            <span style="font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--primary); letter-spacing: 2px;">HELPGURU PLATFORM</span>
+          </div>
+
           <h1 class="hero-title">Intelligent Emergency Response Engine</h1>
           <div class="hero-tagline">"When Every Second Counts, Every Decision Matters."</div>
           <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 600px; line-height: 1.6;">
             A national-scale, cloud-native event-driven backend platform engineered for near-optimal, explainable, and conflict-free disaster management.
           </p>
         </div>
+
         <div class="map-container">
           <!-- Highly Accurate Vector Map of Bangladesh with Divisions & Alerts -->
           <svg class="map-svg" viewBox="0 0 400 480" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -645,12 +776,12 @@
               L 65 115 L 95 90 L 110 100 L 140 65 Z
             " stroke="#5CC8FF" stroke-width="2.5" stroke-linejoin="round" fill="rgba(92, 200, 255, 0.06)" filter="url(#glow-bd)"/>
 
-            <!-- Internal Regional Grid / Division Borders -->
+            <!-- Regional Borders -->
             <path d="M 215 42 Q 225 140 210 200" stroke="rgba(92, 200, 255, 0.2)" stroke-width="1.2" stroke-dasharray="3 3"/>
             <path d="M 110 100 Q 190 160 280 145" stroke="rgba(92, 200, 255, 0.2)" stroke-width="1.2" stroke-dasharray="3 3"/>
             <path d="M 60 260 Q 160 270 230 340" stroke="rgba(92, 200, 255, 0.2)" stroke-width="1.2" stroke-dasharray="3 3"/>
 
-            <!-- 🔴 RED ALERT 1: Barishal (Cyclone & Tidal Flood) -->
+            <!-- 🔴 RED ALERTS -->
             <g transform="translate(195, 305)">
               <circle cx="0" cy="0" r="14" fill="none" stroke="#FF4D4F" stroke-width="1.5" opacity="0.6">
                 <animate attributeName="r" values="4;22;4" dur="2s" repeatCount="indefinite"/>
@@ -661,7 +792,6 @@
               <text x="18" y="3" fill="#FFF" font-size="10" font-weight="bold" font-family="'Space Grotesk', sans-serif">BARISHAL 🚨 CRITICAL</text>
             </g>
 
-            <!-- 🔴 RED ALERT 2: Sylhet (Flash Flood Emergency) -->
             <g transform="translate(315, 105)">
               <circle cx="0" cy="0" r="14" fill="none" stroke="#FF4D4F" stroke-width="1.5" opacity="0.6">
                 <animate attributeName="r" values="4;22;4" dur="2.2s" repeatCount="indefinite"/>
@@ -672,7 +802,6 @@
               <text x="-109" y="3" fill="#FFF" font-size="10" font-weight="bold" font-family="'Space Grotesk', sans-serif">SYLHET 🚨 FLOOD</text>
             </g>
 
-            <!-- 🔴 RED ALERT 3: Chittagong (Landslide & Coastal Risk) -->
             <g transform="translate(330, 360)">
               <circle cx="0" cy="0" r="14" fill="none" stroke="#FF4D4F" stroke-width="1.5" opacity="0.6">
                 <animate attributeName="r" values="4;22;4" dur="2.5s" repeatCount="indefinite"/>
@@ -683,7 +812,7 @@
               <text x="-129" y="3" fill="#FFF" font-size="10" font-weight="bold" font-family="'Space Grotesk', sans-serif">CHITTAGONG 🚨 HIGH</text>
             </g>
 
-            <!-- 🟡 YELLOW ALERT 1: Dhaka (National Command & High Traffic Risk) -->
+            <!-- 🟡 YELLOW ALERTS -->
             <g transform="translate(205, 195)">
               <circle cx="0" cy="0" r="12" fill="none" stroke="#FFD166" stroke-width="1.5" opacity="0.6">
                 <animate attributeName="r" values="4;18;4" dur="3s" repeatCount="indefinite"/>
@@ -694,7 +823,6 @@
               <text x="16" y="4" fill="#000" font-size="9" font-weight="bold" font-family="'Space Grotesk', sans-serif">DHAKA ⚠️ HUB</text>
             </g>
 
-            <!-- 🟡 YELLOW ALERT 2: Rajshahi (Heatwave & Drought Hazard) -->
             <g transform="translate(100, 140)">
               <circle cx="0" cy="0" r="12" fill="none" stroke="#FFD166" stroke-width="1.5" opacity="0.6">
                 <animate attributeName="r" values="4;18;4" dur="2.8s" repeatCount="indefinite"/>
@@ -706,10 +834,10 @@
             </g>
           </svg>
 
-          <!-- Legend Bar at bottom -->
+          <!-- Legend Bar -->
           <div class="map-legend">
             <div class="legend-item"><span style="color:#FF4D4F; font-size:1rem;">🔴</span> <span>RED ALERT: Critical Disaster</span></div>
-            <div class="legend-item"><span style="color:#FFD166; font-size:1rem;">🟡</span> <span>YELLOW ALERT: Moderate Hazard</span></div>
+            <div class="legend-item"><span style="color:#FFD166; font-size:1rem;">🟡</span> <span>YELLOW ALERT: Hazard Risk</span></div>
             <div class="legend-item" style="color:var(--primary); font-weight:bold;">GRID: ONLINE</div>
           </div>
         </div>
@@ -721,10 +849,10 @@
       <h1 class="heading">The National Disaster Challenge</h1>
       <p class="subheading">Disasters are not bottlenecked by lack of resources—they fail due to wrong, delayed, and uncoordinated decisions.</p>
       
-      <div class="split-comparison">
+      <div class="split-comparison animate-up">
         <div class="comp-box old">
           <div class="comp-header" style="color: var(--emergency);">
-            <span>🚨 Traditional Systems</span>
+            <span>🚨 Traditional Systems (Legacy)</span>
           </div>
           <div class="comp-list">
             <div class="comp-item"><span>Dispatch Logic</span><strong style="color: var(--emergency);">Manual & Fragmented</strong></div>
@@ -736,7 +864,7 @@
 
         <div class="comp-box new">
           <div class="comp-header" style="color: var(--success);">
-            <span>⚡ HelpGuru Platform</span>
+            <span>⚡ HelpGuru Platform (Next-Gen AI)</span>
           </div>
           <div class="comp-list">
             <div class="comp-item"><span>Dispatch Logic</span><strong style="color: var(--success);">Automated Event Pipeline</strong></div>
@@ -748,70 +876,102 @@
       </div>
     </div>
 
-    <!-- SLIDE 3: OVERALL SOLUTION -->
+    <!-- SLIDE 3: RICH WORKFLOW PIPELINE -->
     <div class="slide" id="slide-3">
       <h1 class="heading">Overall System Workflow</h1>
       <p class="subheading">End-to-end event stream from incident creation to monitoring feedback loop.</p>
       
-      <div class="arch-flow-minimal">
+      <div class="arch-flow-minimal animate-up">
         <div class="flow-card">
+          <div class="step-badge">STEP 01</div>
           <div class="icon">🚨</div>
           <div class="title">Incident Ingestion</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem;">GeoJSON & Sensor Intake</div>
         </div>
+
         <div class="flow-arrow">➔</div>
+
         <div class="flow-card">
+          <div class="step-badge">STEP 02</div>
           <div class="icon">⚡</div>
           <div class="title">Kafka Event Queue</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem;">High-Throughput Bus</div>
         </div>
+
         <div class="flow-arrow">➔</div>
+
         <div class="flow-card" style="border-color: var(--accent-decision);">
+          <div class="step-badge" style="border-color:var(--accent-decision); color:var(--accent-decision);">STEP 03</div>
           <div class="icon">🧠</div>
           <div class="title" style="color: var(--accent-decision);">Decision Engine</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem;">Multi-Factor Solver</div>
         </div>
+
         <div class="flow-arrow">➔</div>
+
         <div class="flow-card">
+          <div class="step-badge">STEP 04</div>
           <div class="icon">🚑</div>
           <div class="title">Atomic Dispatch</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem;">Redlock Lock Acquisition</div>
         </div>
+
         <div class="flow-arrow">➔</div>
+
         <div class="flow-card">
+          <div class="step-badge">STEP 05</div>
           <div class="icon">📊</div>
           <div class="title">Telemetry Monitor</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem;">Prometheus Feedback</div>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 4: ARCHITECTURE & SECURITY INGRESS -->
+    <!-- SLIDE 4: COLOR-CODED MICROSERVICES -->
     <div class="slide" id="slide-4">
       <h1 class="heading">Microservice Architecture</h1>
       <p class="subheading">Decoupled, event-driven services communicating via internal secure network mesh.</p>
       
-      <div class="grid-2">
-        <div class="glass-panel">
-          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
-            🏗️ Core Microservices Breakdown
+      <div class="grid-2 animate-up">
+        <div class="grid-2" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="svc-card svc-gateway">
+            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🌐</div>
+            <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--accent-auth);">API Gateway</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem;">Sole ingress point & JWT OAuth2 authentication.</div>
           </div>
-          <ul style="line-height: 2; color: var(--text-muted); list-style-type: none;">
-            <li>🔹 <strong>API Gateway:</strong> Sole public ingress point & OAuth2/JWT auth filter.</li>
-            <li>🔹 <strong>Intake Service:</strong> Continuous GeoJSON & event streaming into Kafka.</li>
-            <li>🔹 <strong>Resource Tracker:</strong> Dynamic GPS, hospital capacity & maintenance state.</li>
-            <li>🔹 <strong>Optimization Engine:</strong> Multi-factor scoring & constraint solver.</li>
-          </ul>
+
+          <div class="svc-card svc-intake">
+            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">📡</div>
+            <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--primary);">Intake Service</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem;">Validates GeoJSON & Streams to Kafka queue.</div>
+          </div>
+
+          <div class="svc-card svc-tracker">
+            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🛰️</div>
+            <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--accent-notify);">Resource Tracker</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem;">GPS telemetry, vehicle status & hospital capacity.</div>
+          </div>
+
+          <div class="svc-card svc-engine">
+            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🧠</div>
+            <div style="font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--accent-decision);">Decision Engine</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem;">Multi-factor optimization solver.</div>
+          </div>
         </div>
 
         <div class="arch-callout">
-          <strong style="color: var(--primary);">Security & Ingress Justification:</strong><br>
-          "Each microservice is independently deployable and isolated. The API Gateway serves as the single ingress point, ensuring all internal microservices communicate exclusively over a private network with mTLS and role-based access control."
+          <strong style="color: var(--primary); font-family: 'Space Grotesk', sans-serif; font-size: 1.15rem;">🔐 Security & Ingress Justification:</strong><br><br>
+          "Each microservice is independently deployable and isolated. The API Gateway serves as the single public ingress point, ensuring all internal microservices communicate exclusively over a private network with mTLS and role-based access control."
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 5: HERO SLIDE - DECISION ENGINE -->
+    <!-- SLIDE 5: HERO SLIDE - RADIAL DECISION ENGINE -->
     <div class="slide" id="slide-5">
       <h1 class="heading">Explainable Multi-Factor Decision Engine</h1>
       <p class="subheading">How HelpGuru thinks: Synthesizing dynamic environmental variables into deterministic dispatch choices.</p>
       
-      <div class="grid-2">
+      <div class="grid-2 animate-up">
         <div class="radial-container">
           <!-- Connecting Lines SVG in background -->
           <svg style="position: absolute; width: 100%; height: 100%; top:0; left:0; z-index:1; pointer-events:none;">
@@ -856,7 +1016,7 @@
       <h1 class="heading">Dynamic Re-Optimization & Resiliency</h1>
       <p class="subheading">Continuous adaptation to changing disaster environments and system instance failures.</p>
       
-      <div class="log-timeline">
+      <div class="log-timeline animate-up">
         <div class="log-item">
           <div class="log-time">20:31:08</div>
           <div class="log-text">Incident created in Barishal Region • Ambulance #A-12 Dispatched.</div>
@@ -888,7 +1048,7 @@
       <h1 class="heading">Scalability, Data & Security Dashboard</h1>
       <p class="subheading">Live system operational metrics across all 13 core Architectural Categories.</p>
       
-      <div class="status-dashboard">
+      <div class="status-dashboard animate-up">
         <div class="status-row">
           <div class="status-label">
             <span>🟢</span> Horizontal Scalability
@@ -924,46 +1084,60 @@
       <h1 class="heading">National Emergency Impact</h1>
       <p class="subheading">Transforming disaster management through high-throughput backend engineering.</p>
       
-      <div class="grid-4">
+      <div class="grid-4 animate-up">
         <div class="glass-panel" style="text-align: center;">
           <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">⏱️</div>
-          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--primary);">Faster Response</div>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.5rem;">Sub-second automated dispatch reduces critical response windows.</p>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--primary);">&lt; 100ms</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text-white); margin-top:0.2rem;">Faster Response</div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.4rem;">Sub-second automated dispatch reduces critical response windows.</p>
         </div>
 
         <div class="glass-panel" style="text-align: center;">
           <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔒</div>
-          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--success);">Zero Conflicts</div>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.5rem;">Distributed locks guarantee zero resource double-booking.</p>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--success);">100%</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text-white); margin-top:0.2rem;">Zero Conflicts</div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.4rem;">Distributed locks guarantee zero resource double-booking.</p>
         </div>
 
         <div class="glass-panel" style="text-align: center;">
           <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🛡️</div>
-          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--highlight);">High Availability</div>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.5rem;">Kafka event replay keeps operations online during regional outages.</p>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--highlight);">99.99%</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text-white); margin-top:0.2rem;">High Availability</div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.4rem;">Kafka event replay keeps operations online during regional outages.</p>
         </div>
 
         <div class="glass-panel" style="text-align: center;">
           <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📈</div>
-          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--accent-notify);">Max Utilization</div>
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.5rem;">Dynamic re-allocation ensures no vehicle or facility remains idle.</p>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--accent-notify);">MAX</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text-white); margin-top:0.2rem;">Resource Use</div>
+          <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.4rem;">Dynamic re-allocation ensures no vehicle or facility remains idle.</p>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 9: CLOSING -->
+    <!-- SLIDE 9: CLOSING WITH GIANT HELPGURU EMBLEM -->
     <div class="slide" id="slide-9">
-      <div style="text-align: center; max-width: 800px; margin: 0 auto;">
-        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 3rem; font-weight: 700; color: var(--text-white); margin-bottom: 1rem;">
-          ⚡ Help<span style="color: var(--primary);">Guru</span>
+      <div class="animate-up" style="text-align: center; max-width: 850px; margin: 0 auto;">
+        <!-- Large Glowing Emblem -->
+        <div style="margin-bottom: 1.5rem;">
+          <svg style="width: 80px; height: 80px; filter: drop-shadow(0 0 25px rgba(92, 200, 255, 0.6));" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="20,2 36,10 36,26 20,38 4,26 4,10" stroke="url(#logo-grad-head)" stroke-width="2.5" fill="rgba(92, 200, 255, 0.18)"/>
+            <path d="M 22 8 L 13 22 L 20 22 L 17 32 L 27 18 L 20 18 Z" fill="url(#logo-grad-head)"/>
+          </svg>
         </div>
-        <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 2.5rem; color: var(--highlight); margin-bottom: 1.5rem; border: none;">
+
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 3.2rem; font-weight: 800; color: var(--text-white); margin-bottom: 1rem;">
+          Help<span style="color: var(--primary);">Guru</span>
+        </div>
+
+        <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 2.4rem; color: var(--highlight); margin-bottom: 1.5rem; border: none;">
           "When Every Second Counts, Every Decision Matters."
         </h1>
         <p style="font-size: 1.15rem; color: var(--text-muted); line-height: 1.6;">
           A resilient, scalable, and explainable emergency management backbone designed to protect lives nationwide.
         </p>
-        <div style="margin-top: 2.5rem; font-family: 'Space Grotesk', monospace; font-size: 0.9rem; color: var(--primary); letter-spacing: 2px;">
+
+        <div style="margin-top: 2.5rem; display: inline-block; background: rgba(92, 200, 255, 0.1); border: 1px solid var(--primary); padding: 0.6rem 2rem; border-radius: 999px; font-family: 'Space Grotesk', monospace; font-size: 0.95rem; color: var(--primary); letter-spacing: 2px;">
           THANK YOU
         </div>
       </div>
