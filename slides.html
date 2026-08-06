@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HelpGuru - National Emergency Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-midnight: #07111F;
+      --bg-card: rgba(15, 28, 46, 0.75);
+      --bg-card-border: rgba(92, 200, 255, 0.15);
+      --primary: #5CC8FF;
+      --primary-glow: rgba(92, 200, 255, 0.25);
+      --emergency: #FF4D4F;
+      --emergency-glow: rgba(255, 77, 79, 0.3);
+      --success: #22C55E;
+      --highlight: #FFD166;
+      --text-white: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-dim: #64748B;
+      
+      /* Service Accents */
+      --accent-auth: #3B82F6;
+      --accent-decision: #EAB308;
+      --accent-notify: #A855F7;
+      --accent-dispatch: #22C55E;
+      --accent-monitoring: #F97316;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      background-color: var(--bg-midnight);
+      color: var(--text-white);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(92, 200, 255, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(7, 17, 31, 0.9) 0%, #07111F 100%);
+    }
+
+    /* Ambient animated mesh background */
+    .ambient-bg {
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(92, 200, 255, 0.03) 0%, transparent 60%);
+      animation: rotateBg 40s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes rotateBg {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Top Navigation Header */
+    .top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.5rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(7, 17, 31, 0.6);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-white);
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand-logo span {
+      color: var(--primary);
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--success);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      background-color: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    .slide-meta {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    /* Deck Layout */
+    .deck-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 7rem 5rem 5rem 5rem;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px) scale(0.98);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Typography */
+    h1.heading {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 3.2rem;
+      font-weight: 700;
+      color: var(--text-white);
+      line-height: 1.15;
+      letter-spacing: -1px;
+      margin-bottom: 0.8rem;
+    }
+
+    p.subheading {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 850px;
+      line-height: 1.6;
+      margin-bottom: 2.5rem;
+    }
+
+    /* Glass Cards */
+    .glass-panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .glass-panel:hover {
+      border-color: rgba(92, 200, 255, 0.35);
+      box-shadow: 0 25px 50px rgba(92, 200, 255, 0.08);
+    }
+
+    /* Layout Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      align-items: center;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    /* SLIDE 1: Hero / Hook */
+    .hero-container {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .hero-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 4.2rem;
+      line-height: 1.05;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(135deg, #FFFFFF 40%, var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-tagline {
+      font-size: 1.5rem;
+      color: var(--highlight);
+      font-weight: 600;
+      margin-bottom: 2.5rem;
+      letter-spacing: -0.2px;
+      border-left: 3px solid var(--highlight);
+      padding-left: 1rem;
+    }
+
+    /* Map Graphic SVG */
+    .map-container {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      background: rgba(15, 28, 46, 0.5);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 20px;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .map-svg {
+      width: 80%;
+      height: 85%;
+      filter: drop-shadow(0 0 15px rgba(92, 200, 255, 0.2));
+    }
+
+    /* SLIDE 2: Problem & Split Comparison */
+    .split-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    .comp-box {
+      border-radius: 16px;
+      padding: 1.8rem;
+    }
+
+    .comp-box.old {
+      background: rgba(255, 77, 79, 0.05);
+      border: 1px solid rgba(255, 77, 79, 0.25);
+    }
+
+    .comp-box.new {
+      background: rgba(34, 197, 94, 0.05);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      box-shadow: 0 0 30px rgba(34, 197, 94, 0.08);
+    }
+
+    .comp-header {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .comp-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .comp-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.6rem 1rem;
+      background: rgba(7, 17, 31, 0.6);
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    /* SLIDE 3 & 4: Architecture Flow */
+    .arch-flow-minimal {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+
+    .flow-card {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 14px;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .flow-card .icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .flow-card .title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-white);
+    }
+
+    .flow-arrow {
+      color: var(--primary);
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    /* Architecture Callout Banner */
+    .arch-callout {
+      background: rgba(92, 200, 255, 0.08);
+      border-left: 4px solid var(--primary);
+      padding: 1.2rem 1.8rem;
+      border-radius: 0 12px 12px 0;
+      font-size: 1.05rem;
+      color: var(--text-white);
+      line-height: 1.6;
+      margin-top: 1rem;
+    }
+
+    /* SLIDE 5: HERO SLIDE - Radial Decision Engine */
+    .radial-container {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .radial-center {
+      width: 170px;
+      height: 170px;
+      background: linear-gradient(135deg, rgba(92, 200, 255, 0.2), rgba(234, 179, 8, 0.2));
+      border: 2px solid var(--accent-decision);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(234, 179, 8, 0.3);
+      z-index: 2;
+    }
+
+    .radial-center .title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--accent-decision);
+    }
+
+    .radial-node {
+      position: absolute;
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Radial Positions */
+    .n-top { top: 10px; }
+    .n-bottom { bottom: 10px; }
+    .n-left { left: 40px; }
+    .n-right { right: 40px; }
+    .n-top-left { top: 50px; left: 120px; }
+    .n-top-right { top: 50px; right: 120px; }
+
+    /* Fake Terminal OS Box */
+    .os-terminal {
+      background: #040913;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 1.2rem;
+      font-family: 'Space Grotesk', monospace;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    .os-terminal .line {
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .os-terminal .check {
+      color: var(--success);
+      font-weight: bold;
+    }
+
+    /* SLIDE 6: Log Timeline */
+    .log-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      margin-top: 1rem;
+    }
+
+    .log-item {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+    }
+
+    .log-time {
+      font-family: 'Space Grotesk', monospace;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .log-text {
+      font-size: 1rem;
+      color: var(--text-white);
+      flex: 1;
+    }
+
+    .log-tag {
+      background: rgba(92, 200, 255, 0.1);
+      color: var(--primary);
+      padding: 0.2rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    /* SLIDE 7: System Status Dashboard */
+    .status-dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      margin-top: 1rem;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 14px;
+      padding: 1.2rem 2rem;
+    }
+
+    .status-label {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .status-val {
+      font-size: 1rem;
+      color: var(--text-muted);
+    }
+
+    /* Bottom Control Bar */
+    .bottom-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding: 1.2rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(7, 17, 31, 0.6);
+      backdrop-filter: blur(10px);
+    }
+
+    .progress-track {
+      width: 250px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 11.11%;
+      background: var(--primary);
+      transition: width 0.3s ease;
+    }
+
+    .btn-nav {
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      color: var(--text-white);
+      padding: 0.5rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: 'Space Grotesk', sans-serif;
+      transition: all 0.2s ease;
+    }
+
+    .btn-nav:hover {
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-bg"></div>
+
+  <!-- Top Navigation Bar -->
+  <div class="top-bar">
+    <div class="brand">
+      <div class="brand-logo">⚡ Help<span>Guru</span></div>
+      <div class="status-pill">
+        <div class="pulse-dot"></div>
+        Operation Control Center
+      </div>
+    </div>
+    <div class="slide-meta" id="slide-meta">01 / 09 • HELP GURU OS</div>
+  </div>
+
+  <div class="deck-container">
+
+    <!-- SLIDE 1: HOOK & TITLE -->
+    <div class="slide active" id="slide-1">
+      <div class="hero-container">
+        <div>
+          <h1 class="hero-title">Intelligent Emergency Response Engine</h1>
+          <div class="hero-tagline">"When Every Second Counts, Every Decision Matters."</div>
+          <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 600px; line-height: 1.6;">
+            A national-scale, cloud-native event-driven backend platform engineered for near-optimal, explainable, and conflict-free disaster management.
+          </p>
+        </div>
+        <div class="map-container">
+          <!-- Minimal Vector Map representation with emergency pulses -->
+          <svg class="map-svg" viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 20 L140 40 L160 80 L180 120 L150 180 L120 220 L80 210 L40 170 L20 120 L30 70 Z" stroke="#5CC8FF" stroke-width="1.5" stroke-dasharray="4 4" fill="rgba(92, 200, 255, 0.03)"/>
+            <!-- Emergency Red Pulse Points -->
+            <circle cx="100" cy="90" r="4" fill="#FF4D4F"/>
+            <circle cx="100" cy="90" r="12" stroke="#FF4D4F" stroke-width="1.5" opacity="0.6">
+              <animate attributeName="r" values="4;18;4" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite"/>
+            </circle>
+
+            <circle cx="140" cy="140" r="4" fill="#FF4D4F"/>
+            <circle cx="140" cy="140" r="12" stroke="#FF4D4F" stroke-width="1.5" opacity="0.6">
+              <animate attributeName="r" values="4;18;4" dur="2.5s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite"/>
+            </circle>
+
+            <circle cx="70" cy="160" r="4" fill="#FFD166"/>
+          </svg>
+          <div style="position: absolute; bottom: 15px; font-family: 'Space Grotesk', monospace; font-size: 0.75rem; color: var(--primary);">
+            [NATIONAL EMERGENCY GRID: ACTIVE]
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: THE CHALLENGE & TRADITIONAL VS US -->
+    <div class="slide" id="slide-2">
+      <h1 class="heading">The National Disaster Challenge</h1>
+      <p class="subheading">Disasters are not bottlenecked by lack of resources—they fail due to wrong, delayed, and uncoordinated decisions.</p>
+      
+      <div class="split-comparison">
+        <div class="comp-box old">
+          <div class="comp-header" style="color: var(--emergency);">
+            <span>🚨 Traditional Systems</span>
+          </div>
+          <div class="comp-list">
+            <div class="comp-item"><span>Dispatch Logic</span><strong style="color: var(--emergency);">Manual & Fragmented</strong></div>
+            <div class="comp-item"><span>Resource Allocation</span><strong style="color: var(--emergency);">Static & Double-Booked</strong></div>
+            <div class="comp-item"><span>Adaptability</span><strong style="color: var(--emergency);">Delayed & Rigid</strong></div>
+            <div class="comp-item"><span>Decision Basis</span><strong style="color: var(--emergency);">Intuition-based</strong></div>
+          </div>
+        </div>
+
+        <div class="comp-box new">
+          <div class="comp-header" style="color: var(--success);">
+            <span>⚡ HelpGuru Platform</span>
+          </div>
+          <div class="comp-list">
+            <div class="comp-item"><span>Dispatch Logic</span><strong style="color: var(--success);">Automated Event Pipeline</strong></div>
+            <div class="comp-item"><span>Resource Allocation</span><strong style="color: var(--success);">Conflict-Free Locks (Redlock)</strong></div>
+            <div class="comp-item"><span>Adaptability</span><strong style="color: var(--success);">Near Real-Time Re-routing</strong></div>
+            <div class="comp-item"><span>Decision Basis</span><strong style="color: var(--success);">Explainable Multi-Factor AI</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: OVERALL SOLUTION -->
+    <div class="slide" id="slide-3">
+      <h1 class="heading">Overall System Workflow</h1>
+      <p class="subheading">End-to-end event stream from incident creation to monitoring feedback loop.</p>
+      
+      <div class="arch-flow-minimal">
+        <div class="flow-card">
+          <div class="icon">🚨</div>
+          <div class="title">Incident Ingestion</div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-card">
+          <div class="icon">⚡</div>
+          <div class="title">Kafka Event Queue</div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-card" style="border-color: var(--accent-decision);">
+          <div class="icon">🧠</div>
+          <div class="title" style="color: var(--accent-decision);">Decision Engine</div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-card">
+          <div class="icon">🚑</div>
+          <div class="title">Atomic Dispatch</div>
+        </div>
+        <div class="flow-arrow">➔</div>
+        <div class="flow-card">
+          <div class="icon">📊</div>
+          <div class="title">Telemetry Monitor</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: ARCHITECTURE & SECURITY INGRESS -->
+    <div class="slide" id="slide-4">
+      <h1 class="heading">Microservice Architecture</h1>
+      <p class="subheading">Decoupled, event-driven services communicating via internal secure network mesh.</p>
+      
+      <div class="grid-2">
+        <div class="glass-panel">
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--primary); margin-bottom: 1rem;">
+            🏗️ Core Microservices Breakdown
+          </div>
+          <ul style="line-height: 2; color: var(--text-muted); list-style-type: none;">
+            <li>🔹 <strong>API Gateway:</strong> Sole public ingress point & OAuth2/JWT auth filter.</li>
+            <li>🔹 <strong>Intake Service:</strong> Continuous GeoJSON & event streaming into Kafka.</li>
+            <li>🔹 <strong>Resource Tracker:</strong> Dynamic GPS, hospital capacity & maintenance state.</li>
+            <li>🔹 <strong>Optimization Engine:</strong> Multi-factor scoring & constraint solver.</li>
+          </ul>
+        </div>
+
+        <div class="arch-callout">
+          <strong style="color: var(--primary);">Security & Ingress Justification:</strong><br>
+          "Each microservice is independently deployable and isolated. The API Gateway serves as the single ingress point, ensuring all internal microservices communicate exclusively over a private network with mTLS and role-based access control."
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: HERO SLIDE - DECISION ENGINE -->
+    <div class="slide" id="slide-5">
+      <h1 class="heading">Explainable Multi-Factor Decision Engine</h1>
+      <p class="subheading">How HelpGuru thinks: Synthesizing dynamic environmental variables into deterministic dispatch choices.</p>
+      
+      <div class="grid-2">
+        <div class="radial-container">
+          <!-- Radial Surrounding Nodes -->
+          <div class="radial-node n-top">🚨 Incident Severity</div>
+          <div class="radial-node n-top-left">👥 Affected Population</div>
+          <div class="radial-node n-top-right">⏳ Time Sensitivity</div>
+          <div class="radial-node n-left">🗺️ Travel Time (PostGIS)</div>
+          <div class="radial-node n-right">🌧️ Weather & Hazards</div>
+          <div class="radial-node n-bottom">🏥 Hospital Capacity</div>
+
+          <!-- Central Core Node -->
+          <div class="radial-center">
+            <div class="title">HelpGuru Engine</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">Score Optimization</div>
+          </div>
+        </div>
+
+        <div class="os-terminal">
+          <div style="color: var(--primary); font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; margin-bottom: 0.8rem;">
+            SYSTEM LOG: DISPATCH OPTIMIZER
+          </div>
+          <div class="line"><span>[20:31:08] New Incident Intake: Barishal</span><span class="check">CRITICAL</span></div>
+          <div class="line"><span>[20:31:10] Scanning PostGIS Proximity Grid...</span><span class="check">✓ 14 Units</span></div>
+          <div class="line"><span>[20:31:12] Applying Dynamic Risk Multiplier...</span><span class="check">✓ Calculated</span></div>
+          <div class="line"><span>[20:31:14] Redlock Acquisition on Unit #A-402...</span><span class="check">✓ Locked</span></div>
+          <div class="line" style="color: var(--success);"><span>[20:31:15] Dispatch Command Emitted</span><span class="check">COMPLETE</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: DYNAMIC RE-OPTIMIZATION & FAILOVER -->
+    <div class="slide" id="slide-6">
+      <h1 class="heading">Dynamic Re-Optimization & Resiliency</h1>
+      <p class="subheading">Continuous adaptation to changing disaster environments and system instance failures.</p>
+      
+      <div class="log-timeline">
+        <div class="log-item">
+          <div class="log-time">20:31:08</div>
+          <div class="log-text">Incident created in Barishal Region • Ambulance #A-12 Dispatched.</div>
+          <div class="log-tag">INTAKE</div>
+        </div>
+
+        <div class="log-item" style="border-color: rgba(255, 77, 79, 0.4);">
+          <div class="log-time" style="color: var(--emergency);">20:31:12</div>
+          <div class="log-text"><strong>Road Blocked Detected:</strong> Highway N8 flooded. Recalculating route in &lt;50ms...</div>
+          <div class="log-tag" style="background: rgba(255, 77, 79, 0.15); color: var(--emergency);">RE-ROUTE</div>
+        </div>
+
+        <div class="log-item" style="border-color: rgba(234, 179, 8, 0.4);">
+          <div class="log-time" style="color: var(--highlight);">20:31:16</div>
+          <div class="log-text"><strong>Hospital Capacity Reached:</strong> District Hospital full. Rerouting to General Hospital.</div>
+          <div class="log-tag" style="background: rgba(234, 179, 8, 0.15); color: var(--highlight);">RE-ALLOCATE</div>
+        </div>
+
+        <div class="log-item">
+          <div class="log-time">20:31:19</div>
+          <div class="log-text"><strong>Node Crash Recovery:</strong> Engine Replica #2 auto-assumes state via Kafka Event Replay.</div>
+          <div class="log-tag">FAILOVER</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: SYSTEM STATUS DASHBOARD -->
+    <div class="slide" id="slide-7">
+      <h1 class="heading">Scalability, Data & Security Dashboard</h1>
+      <p class="subheading">Live system operational metrics across all 13 core Architectural Categories.</p>
+      
+      <div class="status-dashboard">
+        <div class="status-row">
+          <div class="status-label">
+            <span>🟢</span> Horizontal Scalability
+          </div>
+          <div class="status-val">Kubernetes Horizontal Pod Autoscaler (HPA) • Stateless Services</div>
+        </div>
+
+        <div class="status-row">
+          <div class="status-label">
+            <span>🟢</span> Polyglot Data Layer
+          </div>
+          <div class="status-val">PostgreSQL (Transactional ACID) + PostGIS (Geospatial R-Tree Indexing)</div>
+        </div>
+
+        <div class="status-row">
+          <div class="status-label">
+            <span>🟢</span> Distributed Caching & Locks
+          </div>
+          <div class="status-val">Redis Cluster • Sub-millisecond Lookups & Redlock Race-Condition Prevention</div>
+        </div>
+
+        <div class="status-row">
+          <div class="status-label">
+            <span>🟢</span> Security & Governance
+          </div>
+          <div class="status-val">Gateway-Only Ingress • Role-Based Access Control (RBAC) • E2E TLS 1.3</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: IMPACT -->
+    <div class="slide" id="slide-8">
+      <h1 class="heading">National Emergency Impact</h1>
+      <p class="subheading">Transforming disaster management through high-throughput backend engineering.</p>
+      
+      <div class="grid-4">
+        <div class="glass-panel" style="text-align: center;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">⏱️</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--primary);">Faster Response</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.5rem;">Sub-second automated dispatch reduces critical response windows.</p>
+        </div>
+
+        <div class="glass-panel" style="text-align: center;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔒</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--success);">Zero Conflicts</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.5rem;">Distributed locks guarantee zero resource double-booking.</p>
+        </div>
+
+        <div class="glass-panel" style="text-align: center;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">🛡️</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--highlight);">High Availability</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.5rem;">Kafka event replay keeps operations online during regional outages.</p>
+        </div>
+
+        <div class="glass-panel" style="text-align: center;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">📈</div>
+          <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--accent-notify);">Max Utilization</div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.5rem;">Dynamic re-allocation ensures no vehicle or facility remains idle.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9: CLOSING -->
+    <div class="slide" id="slide-9">
+      <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 3rem; font-weight: 700; color: var(--text-white); margin-bottom: 1rem;">
+          ⚡ Help<span style="color: var(--primary);">Guru</span>
+        </div>
+        <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 2.8rem; color: var(--highlight); margin-bottom: 1.5rem; border: none;">
+          "When Every Second Counts, Every Decision Matters."
+        </h1>
+        <p style="font-size: 1.2rem; color: var(--text-muted); line-height: 1.6;">
+          A resilient, scalable, and explainable emergency management backbone designed to protect lives nationwide.
+        </p>
+        <div style="margin-top: 2.5rem; font-family: 'Space Grotesk', monospace; font-size: 0.9rem; color: var(--primary); letter-spacing: 2px;">
+          THANK YOU
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Navigation Control Bar -->
+  <div class="bottom-bar">
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div>
+      <button class="btn-nav" onclick="prevSlide()">❮ Prev</button>
+      <button class="btn-nav" onclick="nextSlide()">Next ❯</button>
+    </div>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 9;
+
+    const titles = [
+      "01 / 09 • HELP GURU OS",
+      "02 / 09 • THE CHALLENGE",
+      "03 / 09 • SYSTEM WORKFLOW",
+      "04 / 09 • MICROSERVICE ARCHITECTURE",
+      "05 / 09 • DECISION ENGINE (HERO)",
+      "06 / 09 • DYNAMIC RE-OPTIMIZATION",
+      "07 / 09 • SYSTEM STATUS DASHBOARD",
+      "08 / 09 • NATIONAL IMPACT",
+      "09 / 09 • CLOSING"
+    ];
+
+    function showSlide(index) {
+      if (index < 1 || index > totalSlides) return;
+      
+      document.querySelectorAll('.slide').forEach((slide) => {
+        slide.classList.remove('active');
+      });
+
+      document.getElementById(`slide-${index}`).classList.add('active');
+      currentSlide = index;
+
+      document.getElementById('slide-meta').innerText = titles[index - 1];
+      document.getElementById('progress-fill').style.width = `${(index / totalSlides) * 100}%`;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        showSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        showSlide(currentSlide - 1);
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      }
+    });
+  </script>
+</body>
+</html>
