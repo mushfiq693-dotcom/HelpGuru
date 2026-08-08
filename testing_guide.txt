@@ -1,0 +1,257 @@
+=========================================================
+HELPGURU EMERGENCY RESPONSE PLATFORM - STEP-BY-STEP TESTING GUIDE
+হেল্পগুরু ইমার্জেন্সি রেসপন্স প্ল্যাটফর্ম - স্টেপ-বাই-স্টেপ টেস্টিং গাইড
+=========================================================
+
+This document contains step-by-step instructions for testing and verifying each phase of the HelpGuru platform implementation.
+এই ডকুমেন্টটিতে হেল্পগুরু প্ল্যাটফর্ম বাস্তবায়নের প্রতিটি ফেজ ধাপে ধাপে টেস্ট ও ভেরিফাই করার জন্য বিস্তারিত গাইডলাইন রয়েছে।
+This file is continuously updated at the end of every phase.
+প্রতিটি ফেজ শেষ করার পর এই ফাইলটি নতুন নতুন টেস্ট কেস দিয়ে আপডেট করা হয়।
+
+Current Status / বর্তমান স্ট্যাটাস: PHASE 4 COMPLETED (Decision Engine & Dispatch Optimization Module)
+
+=========================================================
+PHASE 1 TESTING INSTRUCTIONS (Architecture & Database Schema)
+ফেজ ১ টেস্টিং গাইডলাইন (আর্কিটেকচার ও ডাটাবেজ স্কিমা)
+=========================================================
+
+---------------------------------------------------------
+STEP 1: Check Pre-requisites / পূর্বশর্তসমূহ চেক করা
+---------------------------------------------------------
+1. Java Development Kit (JDK 21+): java -version
+2. Apache Maven: mvn -version
+3. PostgreSQL Database / Supabase Cloud DB
+
+---------------------------------------------------------
+STEP 2: Setup Database (Native PostgreSQL or Supabase Cloud)
+---------------------------------------------------------
+Option A: Using Native Installed PostgreSQL (Local):
+1. Start postgres server:
+   pg_ctl -D /opt/homebrew/var/postgresql@1 start
+
+2. Create database & user:
+   createdb helpguru_db
+   createuser -s postgres
+
+Option B: Using Supabase Cloud DB (Active Configuration):
+Backend is connected to Supabase Cloud DB via application.yml!
+
+---------------------------------------------------------
+STEP 3: Execute Database Migration Script / ডাটাবেজ মাইগ্রেশন রান করা
+---------------------------------------------------------
+Command / কমান্ড (via psql CLI to Supabase):
+psql "postgresql://postgres.wrjwhiyomhlqlcuvxsgf:MuSfi0191Mu@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres" -f "helpguru-backend/src/main/resources/db/migration/V1__initial_schema.sql"
+
+---------------------------------------------------------
+STEP 4: Verify Database Tables & Seed Data / ডাটাবেজ ভেরিফিকেশন
+---------------------------------------------------------
+Query 1: List all 14 created tables / তৈরি হওয়া ১৪টি টেবিল দেখা
+SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;
+
+Query 2: Check Seeded System Roles / সিস্টেম রোলসমূহ চেক করা
+SELECT * FROM roles;
+
+Query 3: Check Seeded Emergency Regions / জাতীয় জরুরি রিজিয়নসমূহ চেক করা
+SELECT id, code, name, center_latitude, center_longitude FROM regions;
+
+---------------------------------------------------------
+STEP 5: Backend Compilation & Structure Verification / ব্যাকএন্ড কম্পাইলেশন চেক
+---------------------------------------------------------
+cd helpguru-backend
+mvn clean compile
+
+Expected Output / প্রত্যাশিত আউটপুট: [INFO] BUILD SUCCESS
+
+=========================================================
+END OF PHASE 1 TESTING GUIDE / ফেজ ১ টেস্টিং গাইড সমাপ্ত
+=========================================================
+
+
+=========================================================
+PHASE 2 TESTING INSTRUCTIONS (Authentication & User Management)
+ফেজ ২ টেস্টিং গাইডলাইন (অথেন্টিকেশন ও ইউজার ম্যানেজমেন্ট মডিউল)
+=========================================================
+
+---------------------------------------------------------
+STEP 1: Start Backend Application / ব্যাকএন্ড চালু করা
+---------------------------------------------------------
+cd helpguru-backend
+mvn spring-boot:run
+
+Expected Log / প্রত্যাশিত লগ:
+Started HelpGuruApplication in X seconds (JVM running for Y)
+Tomcat started on port 8080 (http) with context path '/'
+
+---------------------------------------------------------
+STEP 2: Test OpenAPI / Swagger UI Documentation / সোয়াগার টেস্ট
+---------------------------------------------------------
+Open browser and visit / ব্রাউজারে টেস্ট লিংক:
+http://localhost:8080/swagger-ui.html
+
+---------------------------------------------------------
+STEP 3: Test User Registration Endpoint / অ্যাকাউন্ট রেজিস্টার টেস্ট
+---------------------------------------------------------
+curl -X POST "http://localhost:8080/api/v1/auth/register" -H "Content-Type: application/json" -d '{"username":"operator1","email":"operator1@helpguru.gov.bd","password":"Password123!","fullName":"Dhaka Central Dispatcher","phoneNumber":"+8801700000001","regionId":1,"roles":["ROLE_OPERATOR"]}'
+
+Expected Output (HTTP 201 Created): Returns JWT Bearer Token and User Profile.
+
+---------------------------------------------------------
+STEP 4: Test Login Endpoint / লগইন টেস্ট
+---------------------------------------------------------
+curl -X POST "http://localhost:8080/api/v1/auth/login" -H "Content-Type: application/json" -d '{"usernameOrEmail":"operator1","password":"Password123!"}'
+
+Expected Output (HTTP 200 OK): Returns valid JWT Bearer Token.
+
+---------------------------------------------------------
+STEP 5: Test Authenticated Profile Endpoint / প্রোফাইল টেস্ট
+---------------------------------------------------------
+curl -X GET "http://localhost:8080/api/v1/users/me" -H "Authorization: Bearer <YOUR_JWT_TOKEN_HERE>"
+
+Expected Output (HTTP 200 OK): Returns Profile details of operator1.
+
+=========================================================
+END OF PHASE 2 TESTING GUIDE / ফেজ ২ টেস্টিং গাইড সমাপ্ত
+=========================================================
+
+
+=========================================================
+PHASE 3 TESTING INSTRUCTIONS (Incident & Resource Management)
+ফেজ ৩ টেস্টিং গাইডলাইন (ইনসিডেন্ট, রিসোর্স ও হসপিটাল মডিউল)
+=========================================================
+
+---------------------------------------------------------
+STEP 1: Register Emergency Hospital Facility / হসপিটাল এন্ট্রি টেস্ট
+---------------------------------------------------------
+Run cURL to register a new Hospital Facility with bed & ICU capacity:
+ব্রাউজার বা টার্মিনালে হাসপাতাল রেজিস্টার করতে কমান্ড দিন:
+
+curl -X POST "http://localhost:8080/api/v1/hospitals" -H "Content-Type: application/json" -H "Authorization: Bearer <YOUR_JWT_TOKEN_HERE>" -d '{"name":"Barishal Medical College Hospital","code":"HOSP-BAR-01","regionId":2,"latitude":22.7010,"longitude":90.3535,"totalBeds":150,"availableBeds":120,"icuTotal":20,"icuAvailable":15,"emergencyContact":"+8801711112222"}'
+
+Expected Output (HTTP 201 Created):
+Hospital created with status OPERATIONAL and synced to Supabase DB.
+
+---------------------------------------------------------
+STEP 2: Register Emergency Resource Unit (Ambulance / Rescue Team) / রিসোর্স ইউনিট টেস্ট
+---------------------------------------------------------
+Run cURL to register an Emergency Responder Ambulance unit:
+টার্মিনালে নতুন জরুরি অ্যাম্বুলেন্স রেজিস্টার করতে কমান্ড দিন:
+
+curl -X POST "http://localhost:8080/api/v1/resources" -H "Content-Type: application/json" -H "Authorization: Bearer <YOUR_JWT_TOKEN_HERE>" -d '{"resourceCode":"AMB-BAR-01","name":"Barishal ICU Ambulance Unit 1","resourceType":"AMBULANCE","regionId":2,"hospitalId":1,"currentLatitude":22.7010,"currentLongitude":90.3535,"capacity":2,"speedKmh":75.0}'
+
+Expected Output (HTTP 201 Created):
+Resource created with status AVAILABLE and initial GPS log persisted.
+
+---------------------------------------------------------
+STEP 3: Report New Emergency Incident / জরুরি ইনসিডেন্ট রিপোর্টিং টেস্ট
+---------------------------------------------------------
+Run cURL to report a Critical Disaster Incident in Barishal Region:
+জরুরি দুর্যোগ ঘটনা রিপোর্ট করতে কমান্ড দিন:
+
+curl -X POST "http://localhost:8080/api/v1/incidents" -H "Content-Type: application/json" -H "Authorization: Bearer <YOUR_JWT_TOKEN_HERE>" -d '{"title":"Severe Flood & Landslide Trapped Victims","description":"Barishal coastal flood trapped 25 family members needing urgent rescue","severityLevel":9,"affectedPeopleCount":25,"timeSensitivityLevel":"CRITICAL","requiredResourceType":"AMBULANCE","regionId":2,"latitude":22.7050,"longitude":90.3580,"addressText":"Sadat Road, Barishal Sadar"}'
+
+Expected Output (HTTP 201 Created):
+Incident created with unique code INC-XXXX and status REPORTED.
+
+---------------------------------------------------------
+STEP 4: Update Live GPS Telemetry / জিপিএস ট্র্যাকিং আপডেট টেস্ট
+---------------------------------------------------------
+Run cURL to send live GPS coordinates and speed telemetry update from moving vehicle:
+চলন্ত গাড়ি থেকে জিপিএস লোকেশন ও স্পিড আপডেট পাঠাতে কমান্ড দিন:
+
+curl -X PATCH "http://localhost:8080/api/v1/resources/1/location" -H "Content-Type: application/json" -H "Authorization: Bearer <YOUR_JWT_TOKEN_HERE>" -d '{"latitude":22.7040,"longitude":90.3560,"speedKmh":82.5,"headingDegrees":45.0,"status":"DISPATCHED"}'
+
+Expected Output (HTTP 200 OK):
+Live GPS updated and persisted to telemetry log.
+
+=========================================================
+END OF PHASE 3 TESTING GUIDE / ফেজ ৩ টেস্টিং গাইড সমাপ্ত
+=========================================================
+
+
+
+
+
+=========================================================
+PHASE 4 TESTING INSTRUCTIONS (Decision Engine & Dispatch Optimization)
+ফেজ ৪ টেস্টিং গাইডলাইন (ডিসিশন ইঞ্জিন ও অপটিমাইজেশন মডিউল)
+=========================================================
+
+---------------------------------------------------------
+STEP 1: Generate AI Ranked Dispatch Recommendations (POST /api/v1/dispatch/recommendations)
+জরুরি দুর্যোগের সবচেয়ে উপযুক্ত অ্যাম্বুলেন্স/রেসকিউ টিম ও নিকটস্থ হাসপাতালের র‍্যাঙ্কিং দেখতে:
+---------------------------------------------------------
+Run cURL to request AI multi-factor Haversine distance, ETA, and priority ranked recommendations for Incident ID 1:
+টার্মিনালে কমান্ড দিন:
+
+curl -X POST "http://localhost:8080/api/v1/dispatch/recommendations" -H "Content-Type: application/json" -H "Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJvcGVyYXRvcjEiLCJ1c2VySWQiOjEsImlhdCI6MTc4NjExNzQ3MiwiZXhwIjoxNzg2MjAzODcyfQ.OxsS9piuwWwG5PZNnkh-dqBJIb93UOGhDFF0cJ4aUYCqqOEUEFZreh-dta0LmsUb" -d '{"incidentId":1,"maxResults":5}'
+
+Expected Output (HTTP 200 OK):
+Returns ranked list of candidate emergency units with calculated distance (km), estimated ETA (mins), objective score (0-100), and nearest suitable hospital.
+
+---------------------------------------------------------
+STEP 2: Execute Emergency Dispatch Assignment (POST /api/v1/dispatch/assignments)
+জরুরি রেসকিউ টিমকে আনুষ্ঠানিকভাবে স্পটে ডিসপ্যাচ ও অ্যাসাইন করতে:
+---------------------------------------------------------
+Run cURL to dispatch Resource ID 1 (Ambulance) to Incident ID 1 & Hospital ID 1:
+টার্মিনালে কমান্ড দিন:
+
+curl -X POST "http://localhost:8080/api/v1/dispatch/assignments" -H "Content-Type: application/json" -H "Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJvcGVyYXRvcjEiLCJ1c2VySWQiOjEsImlhdCI6MTc4NjExNzQ3MiwiZXhwIjoxNzg2MjAzODcyfQ.OxsS9piuwWwG5PZNnkh-dqBJIb93UOGhDFF0cJ4aUYCqqOEUEFZreh-dta0LmsUb" -d '{"incidentId":1,"resourceId":1,"hospitalId":1}'
+
+Expected Output (HTTP 201 Created):
+Creates Assignment with code ASN-XXXX, status DISPATCHED, updates resource status to DISPATCHED, updates incident status to ASSIGNED, and syncs to Supabase DB.
+
+---------------------------------------------------------
+STEP 3: Get Active Dispatch Assignments (GET /api/v1/dispatch/assignments)
+সক্রিয় জরুরি অ্যাসাইনমেন্টের তালিকা দেখতে:
+---------------------------------------------------------
+curl -X GET "http://localhost:8080/api/v1/dispatch/assignments" -H "Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJvcGVyYXRvcjEiLCJ1c2VySWQiOjEsImlhdCI6MTc4NjExNzQ3MiwiZXhwIjoxNzg2MjAzODcyfQ.OxsS9piuwWwG5PZNnkh-dqBJIb93UOGhDFF0cJ4aUYCqqOEUEFZreh-dta0LmsUb"
+
+Expected Output (HTTP 200 OK):
+List of active disaster dispatch assignments across all regions.
+
+=========================================================
+END OF PHASE 4 TESTING GUIDE / ফেজ ৪ টেস্টিং গাইড সমাপ্ত
+=========================================================
+
+
+
+
+=========================================================
+PHASE 5 TESTING INSTRUCTIONS (Real-Time Event & Notification Module)
+ফেজ ৫ টেস্টিং গাইডলাইন (রিয়েল-টাইম নোটিফিকেশন ও ইভেন্ট ব্রডকাস্টিং)
+=========================================================
+
+---------------------------------------------------------
+STEP 1: Send Emergency Notification Alert (POST /api/v1/notifications)
+জরুরি অ্যালার্ট নোটিফিকেশন ইউজার ইনবক্স ও রিয়েল-টাইম ওয়েবসকেটে পাঠাতে:
+---------------------------------------------------------
+Run cURL to push real-time emergency WebSocket & Push alert to User ID 1:
+টার্মিনালে কমান্ড দিন:
+
+curl -X POST "http://localhost:8080/api/v1/notifications" -H "Content-Type: application/json" -H "Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJvcGVyYXRvcjEiLCJ1c2VySWQiOjEsImlhdCI6MTc4NjEzNjk4OCwiZXhwIjoxNzg2MjIzMzg4fQ.t_Z40zFiKaivgKcOGT1KBLj0j_tE1YyBsgagNh1O7ml0PhnvtrXvldIHoJ11RvRR" -d '{"recipientUserId":1,"title":"Critical Dispatch Alert","message":"Ambulance AMB-BAR-01 dispatched to Barishal Sadar","channel":"WEBSOCKET","referenceType":"ASSIGNMENT","referenceId":5}'
+
+Expected Output (HTTP 201 Created):
+Pushes real-time STOMP event to /topic/notifications/1 and saves Notification entity in Supabase DB.
+
+---------------------------------------------------------
+STEP 2: Get User Notification Inbox (GET /api/v1/notifications/user/{userId})
+ইউজারের পার্সোনাল ইনবক্সের নোটিফিকেশন লিস্ট পেতে:
+---------------------------------------------------------
+curl -X GET "http://localhost:8080/api/v1/notifications/user/1" -H "Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJvcGVyYXRvcjEiLCJ1c2VySWQiOjEsImlhdCI6MTc4NjEzNjk4OCwiZXhwIjoxNzg2MjIzMzg4fQ.t_Z40zFiKaivgKcOGT1KBLj0j_tE1YyBsgagNh1O7ml0PhnvtrXvldIHoJ11RvRR"
+
+Expected Output (HTTP 200 OK):
+Returns list of recipient notifications ordered by newest first.
+
+---------------------------------------------------------
+STEP 3: Mark Notification as Read (PATCH /api/v1/notifications/{id}/read)
+নোটিফিকেশনকে পঠিত (Read) হিসেবে মার্ক করতে:
+---------------------------------------------------------
+curl -X PATCH "http://localhost:8080/api/v1/notifications/1/read" -H "Authorization: Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJvcGVyYXRvcjEiLCJ1c2VySWQiOjEsImlhdCI6MTc4NjEzNjk4OCwiZXhwIjoxNzg2MjIzMzg4fQ.t_Z40zFiKaivgKcOGT1KBLj0j_tE1YyBsgagNh1O7ml0PhnvtrXvldIHoJ11RvRR"
+
+Expected Output (HTTP 200 OK):
+Updates isRead status to true.
+
+=========================================================
+END OF PHASE 5 TESTING GUIDE / ফেজ ৫ টেস্টিং গাইড সমাপ্ত
+=========================================================
+

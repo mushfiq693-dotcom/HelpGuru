@@ -1,0 +1,112 @@
+# HelpGuru — Dispatcher Dashboard Frontend Engineering Prompt (v1)
+
+## Context
+
+This is a production engineering task for **HelpGuru**, an Intelligent Emergency Response & Resource Optimization Platform. The current dispatcher dashboard is functional (live map, AI Decision Engine panel, incident list, real-time WebSocket status) but was built as a first working version. This prompt defines a set of frontend improvements to bring the interface from "functional prototype" to "production-ready dispatcher tool."
+
+The primary user is a **trained emergency dispatcher** operating this dashboard under time pressure, often with multiple concurrent incidents. Every change below should be evaluated against that user's real operational needs — not aesthetic preference alone.
+
+Do not change the overall page structure (left incident panel / center map / right AI Decision Engine panel) unless a specific task below requires it. Improve within that structure first.
+
+---
+
+## Task 1 — Make the map an active workspace, not a passive display
+
+**Problem:** The map currently shows markers only for the selected incident. It occupies the largest area of the screen but is functionally underused.
+
+**Requirements:**
+- Render all hospital/unit markers on the map at all times, not just when an incident is selected, so dispatchers can see resource distribution at a glance.
+- Add a clustering or heatmap toggle for when many incidents/units are visible simultaneously, so the map doesn't become unreadable at scale.
+- Implement bidirectional selection: clicking a map marker highlights/scrolls to the corresponding incident card in the left panel, and selecting an incident card highlights its marker on the map.
+
+---
+
+## Task 2 — Expand "Ranked Candidate Units" beyond a single result
+
+**Problem:** The AI Decision Engine panel currently shows only the #1 ranked unit. This doesn't reflect genuine multi-factor ranking, and gives the dispatcher no ability to exercise judgment.
+
+**Requirements:**
+- Display the top 3–5 ranked candidate units, each with its own score and key metrics (distance, ETA, hospital/capacity).
+- Allow the dispatcher to manually select and dispatch a non-#1 candidate (manual override), with the system logging that an override occurred and optionally capturing a reason.
+- Keep the #1 recommendation visually distinct (e.g., default selected state) while still making #2–#5 easily selectable.
+
+---
+
+## Task 3 — Support multi-incident, national-scale data density
+
+**Problem:** The current UI implicitly assumes a small number of incidents. A national-scale system needs to handle hundreds of concurrent incidents without degrading UI performance or usability.
+
+**Requirements:**
+- Virtualize or paginate the incident list so rendering stays performant with large incident counts.
+- Auto-sort incidents by severity by default (most critical first), with the option to change sort order.
+- Support combinable filters — severity + resource type + region simultaneously, not just single-filter selection as it is now.
+
+---
+
+## Task 4 — Add score transparency and auditability to the AI Decision Engine
+
+**Problem:** The dashboard shows a final score (e.g., "95.0/100") with no visible breakdown of how it was calculated. This is a problem both for dispatcher trust and for audit/regulatory requirements.
+
+**Requirements:**
+- Make each candidate's score expandable to show its component breakdown (e.g., distance factor, capacity factor, ETA factor, and their relative weights).
+- Ensure this breakdown is available both in the live UI and in any dispatch record that gets persisted, so a dispatch decision can be explained after the fact.
+- Keep the collapsed/default view clean (single score number) — the breakdown should be an expand/drill-down interaction, not default-visible clutter.
+
+---
+
+## Task 5 — Design explicit loading, error, and empty states
+
+**Problem:** The current UI only shows the "everything is working" happy path. Production systems fail in visible ways, and the UI needs defined states for that.
+
+**Requirements:**
+- Define and implement a dispatch-failed state (e.g., unit became unavailable mid-dispatch, network timeout) with a clear message and recovery action (retry, pick another candidate).
+- Define a visible state change for the "STOMP WebSocket Live" indicator when the connection drops, including whether the dashboard is now showing stale data.
+- Define an empty state for "Active Disasters: 0" that doesn't look like a loading/broken screen.
+
+---
+
+## Task 6 — Add confirmation and reassignment safeguards to dispatch actions
+
+**Problem:** "Execute Official Dispatch" is a single click that commits a real-world emergency resource. This is too high-stakes for a single, unconfirmed action.
+
+**Requirements:**
+- Add a confirmation step before dispatch executes, summarizing unit, ETA, and incident details.
+- After a dispatch is executed, provide a visible reassign/undo path in case the wrong unit was sent, with the resulting state change clearly reflected in the Active Dispatched Assignments list.
+
+---
+
+## Task 7 — Remove color-only signaling and verify contrast
+
+**Problem:** Severity and status are currently communicated through color alone (red/yellow/green), which fails for color-blind users and in poor lighting/glare conditions common in operations centers.
+
+**Requirements:**
+- Pair every severity/status color with a non-color signal (icon, label, or pattern), not color alone.
+- Audit text contrast against the dark background, particularly muted/gray secondary text (e.g., map location labels), against WCAG AA contrast guidelines.
+
+---
+
+## Task 8 — Define the notification system behavior
+
+**Problem:** The notification bell shows a count badge with no defined interaction or content.
+
+**Requirements:**
+- Implement a notification panel covering at minimum: missed/unacknowledged dispatch, unit status changes, and escalation alerts.
+- Define read/unread state handling and how the badge count updates.
+
+---
+
+## Task 9 — Smooth real-time update rendering
+
+**Problem:** With frequent WebSocket-driven updates (unit position, new incidents), naive re-rendering will cause visual flicker and make the dashboard harder to read during high-incident-volume periods — exactly when it matters most.
+
+**Requirements:**
+- Ensure map marker position updates animate/transition smoothly rather than jumping instantly.
+- Ensure list/card re-renders on data update do not cause full-list flicker or scroll-position loss.
+
+---
+
+## General engineering notes
+
+- Treat this as an iterative, task-by-task implementation. Each task above can be scoped and shipped independently — do not attempt all nine simultaneously.
+- For any task involving data shown to the dispatcher (scores, ETAs, statuses), the frontend should reflect what the backend actually computes and persists — do not fabricate or hardcode display values that aren't backed by real data.
+- Flag any task above that would require a backend/API contract change (e.g., score breakdown data, override reason logging, dispatch failure states) before implementing the frontend side, so the two stay in sync.

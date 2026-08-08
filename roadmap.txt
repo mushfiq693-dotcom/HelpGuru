@@ -1,0 +1,385 @@
+You are a team of world-class software architects and senior engineers tasked with designing and implementing a production-grade emergency response management platform called "HelpGuru".
+
+This is NOT a simple CRUD application or a university project.
+
+The goal is to build a well-architected, modular platform capable of intelligently coordinating emergency incidents across an entire country, built as a single deployable backend (modular monolith) rather than distributed microservices — see ARCHITECTURE STYLE below for why.
+
+Your design decisions should follow enterprise software engineering principles used in large-scale systems, scaled appropriately for a hackathon qualification round with no source code deliverable (see DELIVERY PROCESS).
+
+=========================================================
+PROJECT STRUCTURE
+=========================================================
+
+Two separate repositories:
+
+- helpguru-backend
+- helpguru-frontend
+
+Rules:
+- Backend first.
+- REST API contracts finalized before frontend work begins.
+- Phase-by-phase development.
+- Hackathon production quality: clean, justified, demo-able — not
+  necessarily infra-complete.
+
+=========================================================
+ARCHITECTURE STYLE  [CHANGED — reconciled with simplified stack]
+=========================================================
+
+[NOTE ON THIS CHANGE] The original version of this prompt specified 12
+independent microservices, Kafka event streaming, Redis caching, and
+Kubernetes deployment. That has been intentionally simplified to match
+the actual tech stack package below: no Kafka, no Redis, no
+Docker/Kubernetes. This is a legitimate and defensible architectural
+choice for this round — NOT a downgrade — provided the justification is
+stated explicitly and consistently everywhere (this prompt, the code,
+and eventually the video). The justification:
+
+"A national-scale platform is the eventual target, but a hackathon
+qualification round is judged on engineering decision quality, not
+infrastructure footprint. We chose a modular monolith with strict
+internal module boundaries (mirroring the original microservice split)
+so the system is simple to build, test, and demo now, while remaining
+decomposable into real microservices later with minimal rework — each
+module already has its own package, its own persistence boundary
+convention, and communicates internally only through defined
+interfaces/events, not through shared mutable state."
+
+Concretely:
+- ONE Spring Boot application (helpguru-backend), not 12 deployable
+  services.
+- Internal module boundaries still mirror the original service list
+  (auth, user, incident, resource, decision, dispatch, hospital,
+  notification, monitoring, analytics, audit) as separate packages with
+  clear public interfaces — this preserves the separation-of-concerns
+  story for the video/judges even without physical service separation.
+- Inter-module communication happens via direct interface calls plus
+  Spring's `ApplicationEventPublisher`/`@EventListener` for
+  decoupled, event-driven-style triggers (see DECISION ENGINE below) —
+  this is the direct replacement for Kafka's role, scoped honestly to
+  "in-process event-driven," not "distributed event-driven."
+- If asked "how would this scale to microservices later," the answer is:
+  each package's public interface becomes a REST/gRPC contract, and the
+  ApplicationEventPublisher calls become Kafka topic
+  publishes — the module boundaries were chosen specifically to make
+  that migration mechanical, not a rewrite.
+
+=========================================================
+TECH STACK
+=========================================================
+
+Backend:
+Java 21, Spring Boot 3, Spring Security, Spring Data JPA, Hibernate, JWT,
+PostgreSQL, Maven, Swagger/OpenAPI, Lombok, Bean Validation, JUnit 5,
+Mockito.
+
+Frontend:
+Next.js 15, React 19, TypeScript, TailwindCSS, shadcn/ui, Framer Motion,
+React Hook Form, Zod, Axios, TanStack Query, Leaflet + OpenStreetMap,
+WebSocket (client), Lucide, Recharts.
+
+Explicitly OUT of scope for this round:
+- Docker / Kubernetes (no containerization story — see NOTE below)
+- Kafka (replaced by in-process Spring application events)
+- Redis (replaced by JPA/Hibernate second-level cache where appropriate,
+  or no caching layer at all — see CACHE section)
+
+[NOTE — CONSISTENCY FLAG] The earlier presentation script (Slide 7,
+"System Status" dashboard) currently claims "Horizontal · Kubernetes"
+scalability and lists Redis as the caching layer. That has NOT been
+updated yet per your instruction to handle it separately. Before final
+submission, that slide's claims need to be reconciled with this
+simplified stack, or the video will assert infrastructure the actual
+design doesn't have — which is a credibility risk with judges who are
+explicitly told to evaluate engineering decision quality.
+
+=========================================================
+SYSTEM OBJECTIVES
+=========================================================
+
+The platform must:
+
+• Continuously process incoming emergency incidents.
+• Prioritize incidents intelligently.
+• Allocate the most appropriate resources.
+• Dispatch emergency responders.
+• Handle changing environmental conditions.
+• Automatically re-optimize allocations.
+• Prevent resource conflicts.
+• Remain reliable and maintainable under load appropriate to a
+  single-instance deployment (see SCALABILITY NOTE).
+• Support real-time dashboards.
+• Provide explainable decisions.
+
+[CHANGED] "Scale horizontally" and "support thousands of simultaneous
+incidents" (from the original objective list) are now framed as target
+future-state properties enabled by the module-boundary design, not
+claims about the current deployment — see SCALABILITY NOTE below. Stating
+this honestly is stronger than silently dropping it or overclaiming.
+
+=========================================================
+SCALABILITY NOTE  [NEW]
+=========================================================
+
+Current deployment target: single backend instance, single PostgreSQL
+database — appropriate for a hackathon demo and honest about it.
+
+Designed-in scalability path (explain this, don't build it):
+1. Stateless backend + JWT (no server-side session) means multiple
+   instances behind a load balancer would work today with zero code
+   change, if horizontal scaling were needed.
+2. Module boundaries (see ARCHITECTURE STYLE) mean the Decision Engine,
+   Dispatch, or any single module could be extracted into its own
+   service later without touching the others' internals.
+3. PostgreSQL can scale vertically first (standard practice), then via
+   read replicas for dashboard/analytics read traffic, then via
+   partitioning by region_id if/when true national multi-region load
+   requires it.
+This gives an honest, defensible answer to "how does this scale?"
+without claiming infrastructure (Kubernetes, sharded clusters) that
+doesn't exist in this build.
+
+=========================================================
+MICROSERVICES → MODULES  [RENAMED from MICROSERVICES]
+=========================================================
+
+Implement as internal Spring Boot modules/packages (not separate
+deployables):
+
+1. Auth Module
+2. User Management Module
+3. Incident Module
+4. Resource Module
+5. Decision Engine Module
+6. Dispatch Module
+7. Hospital Module
+8. Notification Module
+9. Monitoring Module
+10. Analytics Module
+11. Audit Module
+
+[NOTE] "API Gateway" is removed as a separate item since there is only
+one deployable application — Spring Security + a single set of
+`@RestController`s at the edge serves the equivalent role (single public
+entry point, centralized auth/validation). This is called out explicitly
+so the "single point of ingress" security story from the master prompt
+still holds true even without a dedicated Gateway service.
+
+Module boundary rule (unchanged from before): Audit Module is the single
+source of truth for audit records. Other modules do not write audit rows
+directly — they publish an internal Spring application event (e.g.
+`AssignmentCreatedEvent`), and Audit Module listens and persists it.
+Analytics Module listens to the same events independently for
+read-optimized reporting, decoupled from Audit Module.
+
+=========================================================
+CORE FEATURES
+=========================================================
+
+Incident creation, updates, and lifecycle management
+Resource management (ambulances, rescue teams, fire service, police,
+  helicopters)
+Hospital management and capacity tracking
+Live GPS location tracking
+Availability and capacity tracking
+Estimated arrival calculation
+Road condition and weather condition tracking
+Dynamic prioritization
+Automatic dispatch and re-dispatch
+Conflict prevention and resource reservation
+Assignment history
+Audit logging
+Real-time dashboard (WebSocket-driven)
+Admin portal, Operator portal, Regional control center (frontend views)
+
+=========================================================
+CONFLICT PREVENTION & CONCURRENCY STRATEGY  [CHANGED — no Redis]
+=========================================================
+
+• Resource Reservation Locking:
+  Optimistic locking via a `@Version` column (JPA/Hibernate) on Resource
+  and Assignment entities is the PRIMARY mechanism — this is sufficient
+  and idiomatic for a single-instance, single-database deployment (no
+  distributed lock needed, since there's only one JVM and one DB).
+  On a version conflict (`OptimisticLockException`), the Decision Engine
+  re-scores and selects the next-best available resource rather than
+  failing the incident — conflict becomes a re-optimization trigger, not
+  an error state.
+  [CHANGED FROM PRIOR VERSION] The earlier design used a Redis
+  distributed lock for the reserve/commit window; that's removed since
+  it assumed multiple service instances contending across a network.
+  In a single-instance monolith, a JVM-level synchronized block or
+  Postgres `SELECT ... FOR UPDATE` on the specific resource row during
+  the reservation transaction is sufficient and simpler — use
+  `SELECT FOR UPDATE` scoped tightly to the reservation transaction only,
+  to avoid serializing unrelated reads.
+
+• Idempotency:
+  Since there is no Kafka and no message redelivery, classic "duplicate
+  event" idempotency is less critical — but idempotency still matters at
+  the API layer: dispatch/reservation endpoints should be safe against
+  double-submission (e.g., a user double-clicking "Dispatch") via a
+  unique constraint (one ACTIVE Assignment per incident_id) so a retried
+  HTTP request can't create a duplicate assignment.
+
+• Consistency Model:
+  Single PostgreSQL instance with ACID transactions means strong
+  consistency is the default and free — the earlier CAP-tradeoff
+  discussion (strong vs. eventual consistency across services) mostly
+  goes away in this simplified architecture. This is worth stating
+  explicitly as a benefit of the modular-monolith choice, not just a
+  simplification: "we get correctness by default here, without the
+  distributed-systems complexity that would only pay off at a scale this
+  round doesn't require."
+
+=========================================================
+DECISION ENGINE
+=========================================================
+
+Evaluates: Severity, People affected, Distance, Travel time, Traffic,
+Road closure, Weather, Hospital capacity, Vehicle availability, Resource
+capacity, Operational constraints, Response deadline.
+
+Generates: Priority Score, Resource Suitability Score, Dispatch
+Recommendation.
+
+[CHANGED — event trigger mechanism] The engine recomputes assignments
+whenever incidents or resource states change, triggered via Spring's
+`ApplicationEventPublisher`/`@EventListener` (in-process, synchronous or
+`@Async`) rather than a Kafka consumer. E.g., saving an updated
+ResourceEntity publishes a `ResourceUpdatedEvent`; the Decision Engine
+module listens and re-scores only the incidents plausibly affected by
+that resource (same region/proximity), not the entire incident set —
+preserving the "targeted re-score, not full recompute" principle even
+without a distributed event stream.
+
+[CHANGED — live-state model] Rather than a Redis-backed materialized
+view, the Decision Engine reads current state directly from PostgreSQL
+via the Resource/Incident repositories, using appropriate indexes
+(region_id, status, geo-coordinates) to keep scoring queries fast. This
+is honest about the tradeoff: DB-backed reads are slightly slower than an
+in-memory cache, but at the transaction volume a single-instance
+deployment actually handles, the added complexity of a cache layer isn't
+justified yet — call this out explicitly as "premature optimization
+avoided," not an oversight.
+
+Backpressure/load shedding: still relevant even without Kafka —
+implement priority-ordered processing (a priority queue or ORDER BY
+severity in the re-score batch) so CRITICAL incidents are always
+re-scored first if the engine falls behind under load.
+
+=========================================================
+DATABASE
+=========================================================
+
+Normalized PostgreSQL database. Include:
+
+Users, Roles, Regions, Incidents, Resources, Vehicles, Hospitals,
+Assignments, Notifications, Audit Logs, System Events, Weather
+Snapshots, Road Status, GPS Tracking.
+
+Indexes, Foreign Keys, Constraints, Soft Delete, Migration Scripts
+(Flyway or Liquibase).
+
+[KEPT] Regional partitioning by region_id remains a valid future-scale
+answer to mention (see SCALABILITY NOTE) — not implemented now, but the
+schema should use a `region_id` column consistently everywhere so that
+path stays open.
+
+=========================================================
+CACHE  [CHANGED — no Redis]
+=========================================================
+
+No standalone cache layer for this round. If caching is needed for
+demo-smoothness (e.g., dashboard aggregate queries), use Hibernate's
+built-in second-level cache or a simple in-memory `ConcurrentHashMap`/
+Spring `@Cacheable` (default simple cache provider) scoped to
+read-heavy, low-volatility data only (e.g., region list, static
+reference data) — never for resource availability or anything on the
+reservation/conflict-prevention path, where staleness could cause a
+double-dispatch. This mirrors the original Redis policy's spirit (never
+cache the source of truth for reservations) while matching the
+simplified stack.
+
+=========================================================
+REALTIME
+=========================================================
+
+WebSocket (Spring WebSocket / STOMP) for:
+Live dashboard updates, live incident updates, live resource tracking,
+live hospital occupancy. Triggered by the same internal
+ApplicationEventPublisher events used for Decision Engine recomputation —
+one event, two listeners (re-score + push to connected clients).
+
+=========================================================
+SECURITY
+=========================================================
+
+JWT, RBAC, HTTPS, rate limiting, input validation (Bean Validation),
+audit trail (via Audit Module), secure password hashing (BCrypt),
+refresh tokens.
+
+[CHANGED] Ingress boundary: with no separate API Gateway service, Spring
+Security's filter chain at the single application's edge is the sole
+enforcement point for authentication, and a rate-limiting filter
+(e.g., Bucket4j, in-process) plays the Gateway's role. State this
+explicitly wherever the "single point of ingress" claim is made, so it
+matches the actual deployed topology.
+
+=========================================================
+MONITORING
+=========================================================
+
+Spring Boot Actuator (health checks, metrics endpoints) as the baseline.
+Structured logging (e.g., SLF4J + Logback with JSON encoder) for
+centralized-logging-readiness even without a deployed ELK/Loki stack.
+[NOTE] Prometheus/Grafana from the original prompt require
+infrastructure not in scope for this round (no Docker/K8s to run them
+in); Actuator's `/metrics` endpoint is the honest baseline — mention
+Prometheus/Grafana only as "would scrape this endpoint in production,"
+not as something built now.
+
+=========================================================
+CODE QUALITY
+=========================================================
+
+SOLID, Clean Architecture, DDD principles where they genuinely help
+(don't force it), Repository Pattern, Service Layer, DTOs, Bean
+Validation, Global Exception Handling (`@ControllerAdvice`), Structured
+Logging, OpenAPI/Swagger documentation, Unit Tests (JUnit 5 + Mockito),
+Integration Tests (`@SpringBootTest` + Testcontainers for Postgres if
+time allows).
+
+=========================================================
+DELIVERY PROCESS
+=========================================================
+
+[REMINDER] This hackathon qualification round's official deliverables
+are ONLY a 250-word PDF abstract and a 4-minute MP4 video — no source
+code is required or submitted for this round. Building the actual
+backend/frontend (as scoped below) is optional extra effort, valuable
+mainly if it produces real demo footage for the video or deepens the
+justifications given in the abstract/video. Confirm how much of this
+you actually want built before starting Phase 1, given the time
+available before submission.
+
+Backend first. REST API contracts finalized before frontend work begins.
+
+Phase 1: Architecture, module structure, package boundaries, database
+schema.
+Phase 2: Authentication and user management.
+Phase 3: Incident and resource management.
+Phase 4: Decision engine.
+Phase 5: Dispatch engine.
+Phase 6: Real-time updates (WebSocket).
+Phase 7: Monitoring (Actuator, logging).
+Phase 8: Frontend integration.
+
+At the end of every phase:
+1. Explain design decisions.
+2. Explain tradeoffs.
+3. Ensure compatibility with previous phases.
+4. Never break existing code.
+5. Maintain production-quality coding standards.
+
+Act as a senior engineering team throughout the project.
